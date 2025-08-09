@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luggage Share</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Luggage Share">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<style>
+:root{ --brand:#7D2A45; --ink:#111; --muted:#666; --bg:#f7f7fb; --card:#fff; }
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:10;background:var(--brand);color:#fff;padding:10px 12px}
+h1{margin:4px 0;font-size:18px}
+.searchbar{display:flex;gap:8px}
+.searchbar input{flex:1;padding:10px;border:0;border-radius:10px}
+.searchbar button{background:#fff;color:var(--brand);border:0;border-radius:10px;padding:10px 12px;font-weight:600}
+.tabs{display:flex;gap:8px;overflow:auto;padding:8px 0}
+.tab{background:#ffffff20;color:#fff;border:1px solid #ffffff30;padding:6px 10px;border-radius:999px;font-size:13px;white-space:nowrap}
+main{padding:12px 12px 96px}
+.card{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);margin:10px 0;overflow:hidden}
+.card img{width:100%;height:180px;object-fit:cover;background:#eee}
+.card .p{padding:10px}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{font-size:11px;background:#f0eef2;border-radius:999px;padding:4px 8px}
+.price{font-weight:700}
+.rating{font-weight:700;color:#0a7}
+.actions{display:flex;gap:8px}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 12px;font-weight:600}
+.btn.gray{background:#eee;color:#333}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;display:flex}
+.bottom button{flex:1;padding:12px;border:0;background:#fff}
+.sheet{position:fixed;inset:0;background:#0000;pointer-events:none;transition:.2s}
+.sheet.show{background:#0005;pointer-events:auto}
+.sheet .panel{position:absolute;left:0;right:0;bottom:-60%;background:#fff;border-radius:16px 16px 0 0;padding:14px;min-height:60%;transition:.2s}
+.sheet.show .panel{bottom:0}
+.filter-chip{display:inline-block;margin:6px 6px 0 0;padding:6px 10px;border-radius:999px;border:1px solid #ddd}
+.skeleton{background:linear-gradient(90deg,#eee,#f5f5f7,#eee);background-size:200% 100%;animation:shimmer 1.2s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.carousel{position:relative;overflow:hidden}
+.carousel img{width:100%;height:220px;object-fit:cover}
+.carousel .dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:#fff7}
+.dot.active{background:#fff}
+.slider{width:100%}
+</style>
+</head>
+<body>
+<header>
+  <div class="searchbar">
+    <input id="q" placeholder="Where are you going? (city/airport)">
+    <button onclick="openFilters()">Filters</button>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="setGuests(-1)">– Guest</div>
+    <div class="tab" onclick="setGuests(1)">+ Guest</div>
+    <div class="tab" onclick="openDates()">Dates</div>
+    <div class="tab" onclick="toggleCurrency()">Currency: <span id="cur"></span></div>
+    <div class="tab" onclick="toggleDark()">Theme</div>
+    <div class="tab" onclick="askLocation()">Location</div>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div class="bottom">
+  <button onclick="route('search')">Search</button>
+  <button onclick="route('saved')">Saved</button>
+  <button onclick="route('map')">Map</button>
+  <button onclick="route('profile')">Profile</button>
+</div>
+
+<div id="sheet" class="sheet" onclick="closeFilters(event)">
+  <div class="panel" onclick="event.stopPropagation()">
+    <h3>Filters</h3>
+    <div>
+      <div class="filter-chip"><input type="checkbox" id="f_verified"> Verified hosts</div>
+      <div class="filter-chip"><input type="checkbox" id="f_instant"> Instant match</div>
+      <div class="filter-chip"><input type="checkbox" id="f_under5"> Under 5kg</div>
+    </div>
+    <div style="margin-top:10px">
+      Sort by:
+      <select id="sort">
+        <option value="best">Best match</option>
+        <option value="price">Price (low)</option>
+        <option value="rating">Rating</option>
+        <option value="distance">Distance (needs location)</option>
+      </select>
+    </div>
+    <div style="margin-top:10px">
+      Price max: <b id="priceVal">100</b>
+      <input id="price" type="range" min="10" max="100" step="1" value="100" class="slider" oninput="document.getElementById('priceVal').textContent=this.value">
+    </div>
+    <div style="margin-top:10px">
+      Dates:
+      <div class="row" style="margin-top:6px">
+        <input id="d1" type="date">
+        <input id="d2" type="date">
+      </div>
+    </div>
+    <button class="btn" style="margin-top:12px" onclick="applyFilters()">Apply</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js'); }
+</script>
+</body>
+</html>
